@@ -1,0 +1,5 @@
+{"id":1,"connect":{"client":"c1","version":"5"}}
+{"id":2,"subscribe":{}}
+{"push":{"channel":"match:177256","pub":{"data":{"id":177256,"status":"live","sets":[1,0],"games":[[6,3],[4,2]],"points":["40","15"],"server":1,"event_status":null,"outcome":null,"withdrew":null,"win_probability_p1":0.71,"danger":null,"timestamp":"2026-08-23T15:00:01Z"}}}}
+{"push":{"channel":"point:match:177256","pub":{"data":{"type":"point","match_id":177256,"seq":143,"ts":"2026-08-23T15:00:01Z","pbp_coverage":"point","quality":"clean","point":{"set":2,"game":7,"number":4,"score":["40","15"],"sets":[1,0],"games":[[6,3],[4,2]],"server":1,"winner":1}}}}}
+{}

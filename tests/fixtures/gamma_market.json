@@ -1,0 +1,5 @@
+{"id": "3804316", "question": "ATP Winston-Salem: Arthur Fils vs Frances Tiafoe", "slug": "atp-fils-tiafoe-2026-08-23",
+ "conditionId": "0xabc", "outcomes": "[\"Arthur Fils\", \"Frances Tiafoe\"]", "outcomePrices": "[\"0.65\", \"0.35\"]",
+ "clobTokenIds": "[\"86781508277674171575414787475499297243499446595342891715708208023967\", \"12345\"]",
+ "lastTradePrice": 0.65, "bestBid": 0.64, "bestAsk": 0.66, "updatedAt": "2026-08-23T14:55:21.254348Z",
+ "gameStartTime": "2026-08-23 14:00:00+00", "sportsMarketType": "moneyline", "active": true, "closed": false}

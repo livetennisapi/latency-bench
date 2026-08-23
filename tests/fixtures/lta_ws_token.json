@@ -1,0 +1,2 @@
+{"token": "eyJ.fake", "expires_in": 300, "ws_url": "wss://push.example/connection/websocket",
+ "channels": {"match": "match:{match_id}", "slate": "slate:all", "point_match": "point:match:{match_id}", "point_slate": "point:slate"}}

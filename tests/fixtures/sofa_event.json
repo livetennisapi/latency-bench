@@ -1,0 +1,2 @@
+{"event": {"id": 1, "status": {"type": "inprogress", "description": "2nd set"}, "firstToServe": 1,
+ "homeScore": {"period1": 6, "period2": 3, "point": "30"}, "awayScore": {"period1": 4, "period2": 2, "point": "15"}}}
