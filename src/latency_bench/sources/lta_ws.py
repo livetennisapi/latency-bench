@@ -96,7 +96,7 @@ def parse_message(
             LTA_WS, spec.match_key, "point_frame", pf_state, spec.tour, mono, utc
         )
         out.append(obs)
-        if "sets" in point or "games" in point:
+        if point.get("sets") is not None or point.get("games"):
             score_like = {
                 "sets": point.get("sets"),
                 "games": point.get("games"),
@@ -115,11 +115,13 @@ def parse_message(
                 )
             )
         return out
-    out.append(
-        make_observation(
-            LTA_WS, spec.match_key, "snapshot", normalize_match(frame), spec.tour, mono, utc
+    state = normalize_match(frame)
+    from ..events import _has_score_content
+
+    if _has_score_content(state):
+        out.append(
+            make_observation(LTA_WS, spec.match_key, "snapshot", state, spec.tour, mono, utc)
         )
-    )
     return out
 
 
