@@ -21,13 +21,21 @@ BASE_URL = "https://api.livetennisapi.com/api/public/v1"
 
 
 def normalize_match(m: dict[str, Any]) -> dict[str, Any]:
-    """Project a Live Tennis API match object to the harness ScoreState dict."""
-    games = m.get("games") or [[], []]
+    """Project a Live Tennis API match object to the harness ScoreState dict.
+
+    The live match object nests the score under `score` ({sets, games, points, server,
+    sequence, ...}) — verified against GET /matches?status=live on 2026-08-23. Some
+    surfaces (WS point frames, docs snippets) carry the same keys at top level, so read
+    the nested object first and fall back to top level.
+    """
+    sc = m.get("score") if isinstance(m.get("score"), dict) else {}
+    get = lambda k: sc.get(k) if k in sc else m.get(k)  # noqa: E731
+    games = get("games") or [[], []]
     return {
-        "sets": [int(x) for x in (m.get("sets") or [0, 0])],
+        "sets": [int(x) for x in (get("sets") or [0, 0])],
         "games": [[int(g) for g in side] for side in games],
-        "points": [str(p) for p in (m.get("points") or [])],
-        "server": m.get("server"),
+        "points": [str(p) for p in (get("points") or [])],
+        "server": get("server"),
         "status": m.get("status"),
         "event_status": m.get("event_status"),
         "outcome": m.get("outcome"),

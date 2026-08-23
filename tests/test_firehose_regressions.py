@@ -73,3 +73,22 @@ def test_point_frame_seq_stream():
     ev = d.feed(obs(LTA_WS, {"seq": 191, "ts": "t2"}, 2.0))
     assert [(e.kind, e.event_id) for e in ev] == [("point", "point:seq:191")]
     assert d.feed(obs(LTA_WS, {"seq": 191, "ts": "t2b"}, 3.0)) == []  # re-delivery
+
+
+def test_normalize_reads_nested_score_object():
+    """GET /matches (live) nests sets/games/points/server under `score` — verified
+    2026-08-23; the first live run polled 1,340 times and never saw a game because
+    the normalizer only read top level."""
+    from latency_bench.sources.lta_poll import normalize_match
+
+    m = {"id": 1, "status": "live", "event_status": None, "outcome": None,
+         "score": {"sets": [0, 0], "games": [[4], [2]], "points": ["40", "40"],
+                   "server": 1, "sequence": 45}}
+    st = normalize_match(m)
+    assert st["games"] == [[4], [2]]
+    assert st["points"] == ["40", "40"]
+    assert st["server"] == 1
+    # top-level fallback still works (WS frames / docs shape)
+    st2 = normalize_match({"sets": [1, 0], "games": [[6, 1], [4, 0]], "points": [],
+                           "server": 2, "status": "live"})
+    assert st2["games"] == [[6, 1], [4, 0]]
