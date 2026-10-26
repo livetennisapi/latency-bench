@@ -1,3 +1,5 @@
+import pytest
+
 from latency_bench.models import KALSHI, LTA_POLL, LTA_WS, PM_GAMMA, PM_WS, REFERENCE
 from latency_bench.sources import (
     kalshi_orderbook,
@@ -5,7 +7,12 @@ from latency_bench.sources import (
     lta_ws,
     polymarket_gamma,
     polymarket_ws,
-    reference,
+)
+from latency_bench.sources.base import (
+    REFERENCE_ADAPTER_ENV,
+    REFERENCE_ADAPTER_MISSING,
+    ReferenceAdapterError,
+    load_reference_adapter,
 )
 
 from .conftest import TOKEN
@@ -98,7 +105,20 @@ def test_kalshi_orderbook(fx, spec):
     assert empty.state == {"yes_bid": None, "yes_ask": None}
 
 
+def test_reference_adapter_is_loaded_from_env():
+    with pytest.raises(ReferenceAdapterError) as ei:
+        load_reference_adapter({})
+    assert str(ei.value).startswith(REFERENCE_ADAPTER_MISSING)
+    with pytest.raises(ReferenceAdapterError):
+        load_reference_adapter({REFERENCE_ADAPTER_ENV: "tests.no_such_adapter"})
+    with pytest.raises(ReferenceAdapterError):
+        load_reference_adapter({REFERENCE_ADAPTER_ENV: "json"})  # lacks parse_event / run
+    mod = load_reference_adapter({REFERENCE_ADAPTER_ENV: "tests.fake_reference"})
+    assert callable(mod.parse_event) and callable(mod.run)
+
+
 def test_reference_clock_only(fx, spec):
+    reference = load_reference_adapter({REFERENCE_ADAPTER_ENV: "tests.fake_reference"})
     obs = reference.parse_event(fx("reference_event.json"), spec)
     assert obs.source == REFERENCE
     assert obs.state["sets"] == [1, 0]

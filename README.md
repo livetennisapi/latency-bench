@@ -51,7 +51,8 @@ All deltas use `time.monotonic()` on the one harness host, stamped the instant b
 - **Reference clock**: a private source, used only to time our own observations. The
   adapter is opt-in (`--reference`). Its observations are **never persisted**. Only the
   detected events' kind, id and our timestamps are kept. Nothing from it is ever shown as
-  a data product.
+  a data product. The adapter itself is private, not in this repository, and is loaded from
+  the dotted module path in `LATENCY_BENCH_REFERENCE_ADAPTER` (interface: `sources/base.py`).
 - Numbers appear only with **N, date range and per-tour split**. No "sub-second" claim
   unless measured. Per-kind rows with small N are still rows — do not hide them, do not
   headline them.
@@ -100,7 +101,7 @@ src/latency_bench/
   store.py       JSONL persistence (observations, events)
   clock.py       ntp_check()
   cli.py         run / report / ntp
-  sources/       lta_poll, lta_ws, polymarket_gamma, polymarket_ws, kalshi_orderbook, reference
+  sources/       lta_poll, lta_ws, polymarket_gamma, polymarket_ws, kalshi_orderbook (+ base.py loader)
 tests/           offline fixtures per adapter, synthetic timeline -> known deltas, report formatting
 ```
 

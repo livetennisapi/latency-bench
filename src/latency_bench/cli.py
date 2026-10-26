@@ -26,7 +26,7 @@ from .clock import ntp_check
 from .events import EventDetector
 from .models import REFERENCE, Observation
 from .report import write_report
-from .sources.base import MatchSpec
+from .sources.base import MatchSpec, ReferenceAdapterError, load_reference_adapter
 from .store import read_events_jsonl, write_events_jsonl, write_jsonl
 
 log = logging.getLogger("latency_bench")
@@ -49,9 +49,9 @@ async def run_bench(args: argparse.Namespace) -> None:
         lta_ws,
         polymarket_gamma,
         polymarket_ws,
-        reference,
     )
 
+    reference = load_reference_adapter() if args.reference else None
     specs = load_specs(Path(args.matches))
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -84,7 +84,7 @@ async def run_bench(args: argparse.Namespace) -> None:
             tasks.append(asyncio.create_task(lta_ws.run(emit, specs, key, stop)))
     else:
         log.warning("no Live Tennis API key (--lta-key / LTA_API_KEY): lta_* sources disabled")
-    if args.reference:
+    if reference is not None:
         tasks.append(asyncio.create_task(reference.run(emit, specs, args.poll_interval, stop)))
 
     try:
@@ -119,7 +119,11 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--poll-interval", type=float, default=5.0)
     r.add_argument("--market-poll-interval", type=float, default=2.0)
     r.add_argument("--market-window", type=float, default=20.0)
-    r.add_argument("--reference", action="store_true", help="enable the private reference clock")
+    r.add_argument(
+        "--reference",
+        action="store_true",
+        help="enable the private reference clock ($LATENCY_BENCH_REFERENCE_ADAPTER names it)",
+    )
     rp = sub.add_parser("report", help="rebuild events.csv / summary.json from events.jsonl")
     rp.add_argument("--out", default="out")
     rp.add_argument("--market-window", type=float, default=20.0)
@@ -135,7 +139,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"offset_s={off}")
         return 0
     if args.cmd == "run":
-        asyncio.run(run_bench(args))
+        try:
+            asyncio.run(run_bench(args))
+        except ReferenceAdapterError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
         return 0
     if args.cmd == "report":
         do_report(Path(args.out), args.market_window)

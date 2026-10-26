@@ -40,3 +40,16 @@ def test_ntp_cli(monkeypatch, capsys):
     monkeypatch.setattr(cli, "ntp_check", lambda: -0.001)
     assert cli.main(["ntp"]) == 0
     assert "offset_s=-0.001" in capsys.readouterr().out
+
+
+def test_run_reference_without_adapter_fails_early(tmp_path, monkeypatch, capsys):
+    monkeypatch.delenv("LATENCY_BENCH_REFERENCE_ADAPTER", raising=False)
+    m = tmp_path / "m.json"
+    m.write_text(json.dumps([{"match_key": "1", "tour": "atp", "reference_event_id": 7}]))
+    out = tmp_path / "out"
+    rc = cli.main(["run", "--matches", str(m), "--out", str(out), "--duration", "0", "--reference"])
+    assert rc == 2
+    err = capsys.readouterr().err.strip().splitlines()
+    assert len(err) == 1
+    assert "the private reference clock adapter is not part of this repository" in err[0]
+    assert not out.exists()  # refused before any file or network activity
