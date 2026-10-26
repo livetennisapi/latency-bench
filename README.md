@@ -18,7 +18,7 @@ walkover** — the wall-clock at which each source **first reflects it**:
 | `t_pm_ws` | Polymarket CLOB WebSocket, market channel (keyless) | **market repriced** — best bid/ask or last trade moved |
 | `t_pm_gamma` | Polymarket Gamma REST poll (keyless) | **market repriced** — `outcomePrices`/best bid/ask moved |
 | `t_kalshi` | Kalshi `GET /markets/{ticker}/orderbook` (keyless) | **market repriced** — best yes/no level moved |
-| `t_sofa` | Sofascore event poll | **private reference clock only** (see truth rules) |
+| `t_reference` | private reference clock poll | **reference clock only** (see truth rules) |
 
 Output: `events.csv` (one row per match × event: `match_id, tour, event_kind, event_id,
 wallclock_utc, earliest_source, t_<source>...` where `t_` is **seconds behind the earliest
@@ -41,16 +41,17 @@ All deltas use `time.monotonic()` on the one harness host, stamped the instant b
 (before JSON parsing). Wall-clock (`datetime.now(UTC)`) is recorded for date ranges only.
 `latency-bench ntp` / the start of `run` logs the host offset via `chronyc tracking`,
 `ntpdate -q` or `ntpq -p` (whichever exists) into `out/run_meta.json`. Venue timestamps
-(`ts`, Polymarket `timestamp`, Sofascore) are **never** used for deltas.
+(`ts`, Polymarket `timestamp`, the reference clock) are **never** used for deltas.
 
 ## Truth rules (from the plan — binding)
 
 - **Polymarket** ToS (2026-08-11) bans redistributing their data. This harness publishes
   *timing deltas*, not prices. Prices stay in `observations.jsonl` on the bench host. Ben /
   counsel sign-off is still required before any page goes live.
-- **Sofascore** is a private reference clock. The adapter is opt-in (`--sofa`), its
-  observations are **never persisted** (only the detected events' kind + id + our
-  timestamps are), and nothing from it is ever shown as a data product.
+- **Reference clock**: a private source, used only to time our own observations. The
+  adapter is opt-in (`--reference`). Its observations are **never persisted**. Only the
+  detected events' kind, id and our timestamps are kept. Nothing from it is ever shown as
+  a data product.
 - Numbers appear only with **N, date range and per-tour split**. No "sub-second" claim
   unless measured. Per-kind rows with small N are still rows — do not hide them, do not
   headline them.
@@ -73,7 +74,7 @@ the run measures markets only (useful for plumbing checks, useless as a benchmar
 ```bash
 uv venv && uv pip install -e '.[dev]'
 latency-bench ntp
-latency-bench run --matches matches.json --duration 3600 --out out/ --lta-ws [--sofa]
+latency-bench run --matches matches.json --duration 3600 --out out/ --lta-ws [--reference]
 latency-bench report --out out/ --market-window 20
 ```
 
@@ -82,7 +83,7 @@ latency-bench report --out out/ --market-window 20
 ```json
 [{"match_key": "177256", "tour": "atp", "lta_match_id": 177256,
   "pm_market_id": "3804316", "pm_token_ids": ["8678…", "1234…"],
-  "kalshi_ticker": "KXATPMATCH-26AUG23FILTIA-TIA", "sofa_event_id": null}]
+  "kalshi_ticker": "KXATPMATCH-26AUG23FILTIA-TIA", "reference_event_id": null}]
 ```
 
 Matching is out of scope here: Polymarket ids come from `polymarket-tennis`; Kalshi tickers
@@ -99,7 +100,7 @@ src/latency_bench/
   store.py       JSONL persistence (observations, events)
   clock.py       ntp_check()
   cli.py         run / report / ntp
-  sources/       lta_poll, lta_ws, polymarket_gamma, polymarket_ws, kalshi_orderbook, sofascore
+  sources/       lta_poll, lta_ws, polymarket_gamma, polymarket_ws, kalshi_orderbook, reference
 tests/           offline fixtures per adapter, synthetic timeline -> known deltas, report formatting
 ```
 
@@ -135,8 +136,8 @@ URL `wss://ws-subscriptions-clob.polymarket.com/ws/market`, subscribe
 3. Polymarket WS may batch events as a JSON array and accepts a text `PING` keepalive
    (community-client convention, not on the cited page).
 4. Kalshi orderbook level ordering is ascending by price on both sides (observed once).
-5. The Sofascore event JSON shape (`homeScore.period1..`, `.point`, `firstToServe`) is from
-   memory; no Sofascore call was made. Re-check against a capture before enabling `--sofa`.
+5. The reference clock's event JSON shape is from memory. No call to it was made while
+   building this harness. Re-check against a capture before enabling `--reference`.
 6. Break detection = game won by the player who was *not* `server` in the previous
    observation. If a source lags by a whole game, its `server` can be stale and the break is
    attributed from that source's own view — identities still pair because `event_id` is
