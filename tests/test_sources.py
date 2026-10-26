@@ -1,11 +1,11 @@
-from latency_bench.models import KALSHI, LTA_POLL, LTA_WS, PM_GAMMA, PM_WS, SOFA
+from latency_bench.models import KALSHI, LTA_POLL, LTA_WS, PM_GAMMA, PM_WS, REFERENCE
 from latency_bench.sources import (
     kalshi_orderbook,
     lta_poll,
     lta_ws,
     polymarket_gamma,
     polymarket_ws,
-    sofascore,
+    reference,
 )
 
 from .conftest import TOKEN
@@ -98,13 +98,13 @@ def test_kalshi_orderbook(fx, spec):
     assert empty.state == {"yes_bid": None, "yes_ask": None}
 
 
-def test_sofa_reference_only(fx, spec):
-    obs = sofascore.parse_event(fx("sofa_event.json"), spec)
-    assert obs.source == SOFA
+def test_reference_clock_only(fx, spec):
+    obs = reference.parse_event(fx("reference_event.json"), spec)
+    assert obs.source == REFERENCE
     assert obs.state["sets"] == [1, 0]
     assert obs.state["games"] == [[6, 3], [4, 2]]
     assert obs.state["points"] == ["30", "15"]
-    # the normalized state carries no names/ids — nothing of Sofascore's beyond the score shape
+    # the normalized state carries no names/ids, nothing of the reference's beyond the score shape
     assert set(obs.state) <= {
         "sets",
         "games",

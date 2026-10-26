@@ -2,13 +2,13 @@
 
   latency-bench ntp
   latency-bench run --matches matches.json --duration 3600 --out out/ [--lta-key ...]
-                    [--poll-interval 5] [--market-poll-interval 2] [--sofa]
+                    [--poll-interval 5] [--market-poll-interval 2] [--reference]
   latency-bench report --out out/ [--market-window 20]
 
 matches.json: list of MatchSpec dicts, e.g.
   [{"match_key": "177256", "tour": "atp", "lta_match_id": 177256,
     "pm_market_id": "3804316", "pm_token_ids": ["8678...", "1234..."],
-    "kalshi_ticker": "KXATPMATCH-26AUG23FILTIA-TIA", "sofa_event_id": null}]
+    "kalshi_ticker": "KXATPMATCH-26AUG23FILTIA-TIA", "reference_event_id": null}]
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from pathlib import Path
 from .aligner import align
 from .clock import ntp_check
 from .events import EventDetector
-from .models import SOFA, Observation
+from .models import REFERENCE, Observation
 from .report import write_report
 from .sources.base import MatchSpec
 from .store import read_events_jsonl, write_events_jsonl, write_jsonl
@@ -49,7 +49,7 @@ async def run_bench(args: argparse.Namespace) -> None:
         lta_ws,
         polymarket_gamma,
         polymarket_ws,
-        sofascore,
+        reference,
     )
 
     specs = load_specs(Path(args.matches))
@@ -65,7 +65,7 @@ async def run_bench(args: argparse.Namespace) -> None:
 
     async def emit(obs: Observation) -> None:
         events = detector.feed(obs)
-        if obs.source != SOFA:  # Sofascore payloads are never persisted
+        if obs.source != REFERENCE:  # reference clock payloads are never persisted
             write_jsonl(obs_path, [obs])
         if events:
             write_events_jsonl(ev_path, events)
@@ -84,8 +84,8 @@ async def run_bench(args: argparse.Namespace) -> None:
             tasks.append(asyncio.create_task(lta_ws.run(emit, specs, key, stop)))
     else:
         log.warning("no Live Tennis API key (--lta-key / LTA_API_KEY): lta_* sources disabled")
-    if args.sofa:
-        tasks.append(asyncio.create_task(sofascore.run(emit, specs, args.poll_interval, stop)))
+    if args.reference:
+        tasks.append(asyncio.create_task(reference.run(emit, specs, args.poll_interval, stop)))
 
     try:
         await asyncio.sleep(args.duration)
@@ -119,7 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--poll-interval", type=float, default=5.0)
     r.add_argument("--market-poll-interval", type=float, default=2.0)
     r.add_argument("--market-window", type=float, default=20.0)
-    r.add_argument("--sofa", action="store_true", help="enable private Sofascore reference clock")
+    r.add_argument("--reference", action="store_true", help="enable the private reference clock")
     rp = sub.add_parser("report", help="rebuild events.csv / summary.json from events.jsonl")
     rp.add_argument("--out", default="out")
     rp.add_argument("--market-window", type=float, default=20.0)

@@ -28,7 +28,7 @@ def spec():
         pm_market_id="3804316",
         pm_token_ids=(TOKEN, "12345"),
         kalshi_ticker="KXATPMATCH-26AUG23FILTIA-TIA",
-        sofa_event_id=1,
+        reference_event_id=1,
     )
 
 

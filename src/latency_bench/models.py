@@ -14,11 +14,11 @@ LTA_POLL = "lta_poll"
 PM_WS = "pm_ws"
 PM_GAMMA = "pm_gamma"
 KALSHI = "kalshi"
-SOFA = "sofa"
+REFERENCE = "reference"
 
-SCORE_SOURCES = frozenset({LTA_WS, LTA_POLL, SOFA})
+SCORE_SOURCES = frozenset({LTA_WS, LTA_POLL, REFERENCE})
 MARKET_SOURCES = frozenset({PM_WS, PM_GAMMA, KALSHI})
-ALL_SOURCES = (LTA_WS, LTA_POLL, PM_WS, PM_GAMMA, KALSHI, SOFA)
+ALL_SOURCES = (LTA_WS, LTA_POLL, PM_WS, PM_GAMMA, KALSHI, REFERENCE)
 
 # Scoring-event kinds (score sources) and the single market kind.
 POINT = "point"

@@ -1,6 +1,6 @@
 """Turn consecutive observations of one (source, match) into scoring / repricing events.
 
-Score sources (lta_ws, lta_poll, sofa) carry a normalized ScoreState in Observation.state:
+Score sources (lta_ws, lta_poll, reference) carry a normalized ScoreState in Observation.state:
     sets:   [p1, p2]                 ints
     games:  [[p1 per set], [p2 per set]]  player-major, like the Live Tennis API
     points: [p1, p2]                 strings ("0","15","30","40","AD" or tiebreak ints as str)

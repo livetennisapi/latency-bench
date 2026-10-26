@@ -1,21 +1,22 @@
-"""Sofascore — PRIVATE REFERENCE CLOCK ONLY. OPTIONAL. OFF BY DEFAULT.
+"""Private reference clock. REFERENCE CLOCK ONLY. OPTIONAL. OFF BY DEFAULT.
 
 #############################################################################################
-#  Sofascore's terms forbid commercial use / redistribution of their data.                   #
+#  The reference source's terms forbid commercial use / redistribution of its data.         #
 #  This adapter exists ONLY so the harness can tell whether Live Tennis API was the earliest #
-#  observer of a scoring event. Nothing from Sofascore is ever written to events.csv,         #
-#  summary.json or the public page except the *timing* of when we saw a change, under the    #
-#  column t_sofa. Scores, player names, ids and raw payloads from Sofascore are NEVER stored   #
-#  beyond the in-memory diff and are NEVER shown as a data product. Do not "improve" this by  #
-#  persisting their payloads. (PLAN-latency-page-2026-08-23.md, "Truth rules".)               #
+#  observer of a scoring event. Nothing from the reference source is ever written to         #
+#  events.csv, summary.json or the public page except the *timing* of when we saw a change,  #
+#  under the column t_reference. Scores, player names, ids and raw payloads from it are      #
+#  NEVER stored beyond the in-memory diff and are NEVER shown as a data product. Do not      #
+#  "improve" this by persisting its payloads. (PLAN-latency-page-2026-08-23.md, "Truth      #
+#  rules".)                                                                                  #
 #############################################################################################
 
-ASSUMED (not verified here — no Sofascore call was made while building this harness):
-  GET https://api.sofascore.com/api/v1/event/{event_id}  -> {"event": {...}}  with
+ASSUMED (not verified here. No call to the reference source was made while building this):
+  GET {BASE_URL}/event/{event_id}  -> {"event": {...}}  with
   homeScore/awayScore {period1..period5, point} and homeTeam/awayTeam; tennis point strings
   and serving side under event.firstToServe / lastPeriod. The normalizer below is written
   against that remembered shape and must be re-checked against a live capture before any run.
-  Enable with --sofa ; disabled by default.
+  Enable with --reference ; disabled by default.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ import asyncio
 import logging
 from typing import Any
 
-from ..models import SOFA
+from ..models import REFERENCE
 from .base import Emit, MatchSpec, call_emit, make_observation
 
 log = logging.getLogger(__name__)
@@ -33,7 +34,7 @@ _PERIODS = ("period1", "period2", "period3", "period4", "period5")
 
 
 def normalize_event(raw: dict[str, Any]) -> dict[str, Any]:
-    """Project a Sofascore event to the harness ScoreState; only score shape, nothing else."""
+    """Project a reference event to the harness ScoreState; only score shape, nothing else."""
     ev = raw.get("event") or raw
     hs, aw = ev.get("homeScore") or {}, ev.get("awayScore") or {}
     g1 = [int(hs[p]) for p in _PERIODS if p in hs]
@@ -67,7 +68,7 @@ def normalize_event(raw: dict[str, Any]) -> dict[str, Any]:
 
 def parse_event(raw: dict[str, Any], spec: MatchSpec, mono=None, utc=None):
     return make_observation(
-        SOFA, spec.match_key, "snapshot", normalize_event(raw), spec.tour, mono, utc
+        REFERENCE, spec.match_key, "snapshot", normalize_event(raw), spec.tour, mono, utc
     )
 
 
@@ -81,14 +82,14 @@ async def run(
     try:
         while not stop.is_set():
             for spec in specs:
-                if spec.sofa_event_id is None:
+                if spec.reference_event_id is None:
                     continue
                 try:
-                    r = await client.get(f"{BASE_URL}/event/{spec.sofa_event_id}")
+                    r = await client.get(f"{BASE_URL}/event/{spec.reference_event_id}")
                     r.raise_for_status()
                     await call_emit(emit, parse_event(r.json(), spec))
                 except Exception as exc:  # noqa: BLE001
-                    log.warning("sofa %s: %s", spec.match_key, exc)
+                    log.warning("reference %s: %s", spec.match_key, exc)
             try:
                 await asyncio.wait_for(stop.wait(), timeout=interval_s)
             except TimeoutError:

@@ -23,7 +23,7 @@ class MatchSpec:
     pm_market_id: str | None = None  # Gamma market id
     pm_token_ids: tuple[str, ...] = ()  # CLOB token ids for the WS market channel
     kalshi_ticker: str | None = None
-    sofa_event_id: int | None = None
+    reference_event_id: int | None = None  # private reference clock, opt-in
 
 
 def stamp() -> tuple[float, Any]:

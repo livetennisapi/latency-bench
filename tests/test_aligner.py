@@ -4,7 +4,7 @@ from datetime import UTC, datetime, timedelta
 
 from latency_bench.aligner import align
 from latency_bench.events import EventDetector
-from latency_bench.models import GAME, KALSHI, LTA_POLL, LTA_WS, PM_WS, POINT, SOFA
+from latency_bench.models import GAME, KALSHI, LTA_POLL, LTA_WS, PM_WS, POINT, REFERENCE
 from latency_bench.sources.base import make_observation
 
 T0 = datetime(2026, 8, 23, 15, 0, tzinfo=UTC)
@@ -35,14 +35,14 @@ def build_timeline():
         )
 
     # initial state seen by everyone
-    for src in (LTA_WS, LTA_POLL, SOFA):
+    for src in (LTA_WS, LTA_POLL, REFERENCE):
         add(src, 0.0, s0)
-    # point: ws at 10.0, sofa 10.8, poll 12.5
+    # point: ws at 10.0, reference 10.8, poll 12.5
     add(LTA_WS, 10.0, s1)
-    add(SOFA, 10.8, s1)
+    add(REFERENCE, 10.8, s1)
     add(LTA_POLL, 12.5, s1)
-    # game: sofa first at 40.0, ws 40.3, poll 44.0
-    add(SOFA, 40.0, s2)
+    # game: reference first at 40.0, ws 40.3, poll 44.0
+    add(REFERENCE, 40.0, s2)
     add(LTA_WS, 40.3, s2)
     add(LTA_POLL, 44.0, s2)
     add(LTA_POLL, 49.0, s2)  # identical re-poll: must not create anything
@@ -67,9 +67,9 @@ def test_known_deltas():
         PM_WS: 1.5,
         "pm_gamma": None,
         KALSHI: None,
-        SOFA: 0.8,
+        REFERENCE: 0.8,
     }
-    assert game.earliest_source == SOFA
+    assert game.earliest_source == REFERENCE
     assert game.behind(LTA_WS) == 0.3
     assert game.behind(LTA_POLL) == 4.0
     assert game.behind(KALSHI) == 1.2  # attached reprice within window

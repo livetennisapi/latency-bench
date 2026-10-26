@@ -9,7 +9,7 @@
    "11344188409111801950432502408998313297387268691372079938393854473990125436456"
   ],
   "kalshi_ticker": null,
-  "sofa_event_id": null
+  "reference_event_id": null
  },
  {
   "match_key": "177588",
@@ -21,7 +21,7 @@
    "36237928480651671341105088998000795636986015000988158518854043690044429433906"
   ],
   "kalshi_ticker": null,
-  "sofa_event_id": null
+  "reference_event_id": null
  },
  {
   "match_key": "177429",
@@ -33,7 +33,7 @@
    "6854427419857932334665202784969197314137925408936780446892392341170192906973"
   ],
   "kalshi_ticker": "KXITFWMATCH-26AUG23FULBOH-FUL",
-  "sofa_event_id": null
+  "reference_event_id": null
  },
  {
   "match_key": "177502",
@@ -45,7 +45,7 @@
    "79786095441073019468892030132610568941638128266716199806871894210099356137769"
   ],
   "kalshi_ticker": "KXATPCHALLENGERMATCH-26AUG23BIGAND-BIG",
-  "sofa_event_id": null
+  "reference_event_id": null
  },
  {
   "match_key": "177504",
@@ -57,6 +57,6 @@
    "33929550114159599260635542098139788232102211653421515243036959388811040672792"
   ],
   "kalshi_ticker": "KXATPCHALLENGERMATCH-26AUG23CLAHUE-CLA",
-  "sofa_event_id": null
+  "reference_event_id": null
  }
 ]

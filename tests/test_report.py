@@ -3,7 +3,7 @@ import json
 from datetime import UTC, datetime
 
 from latency_bench.aligner import AlignedEvent
-from latency_bench.models import KALSHI, LTA_POLL, LTA_WS, POINT, SOFA
+from latency_bench.models import KALSHI, LTA_POLL, LTA_WS, POINT, REFERENCE
 from latency_bench.report import (
     CSV_COLUMNS,
     STATUS_BANNER,
@@ -22,9 +22,8 @@ def _aligned():
             "m1", "atp", POINT, f"point:{i}", {LTA_WS: 100 + ws, LTA_POLL: 100 + poll}, T0
         )
         out.append(ae)
-    out.append(
-        AlignedEvent("m2", "itf", POINT, "point:x", {SOFA: 50.0, LTA_WS: 50.4, KALSHI: 51.0}, T0)
-    )
+    sightings = {REFERENCE: 50.0, LTA_WS: 50.4, KALSHI: 51.0}
+    out.append(AlignedEvent("m2", "itf", POINT, "point:x", sightings, T0))
     return out
 
 
@@ -37,15 +36,15 @@ def test_summary_rows():
     poll = rows[("atp", "point", "lta_poll")]
     assert poll["n"] == 3 and poll["median_s"] == 3.0 and poll["p90_s"] == 8.6 and poll["wins"] == 0
     assert rows[("atp", "point", "lta_ws")]["wins"] == 3
-    assert rows[("itf", "point", "sofa")]["median_s"] == 0.0
+    assert rows[("itf", "point", "reference")]["median_s"] == 0.0
     assert rows[("itf", "point", "kalshi")]["median_s"] == 1.0
-    assert s["earliest_by_tour"] == {"atp": {"lta_ws": 3}, "itf": {"sofa": 1}}
+    assert s["earliest_by_tour"] == {"atp": {"lta_ws": 3}, "itf": {"reference": 1}}
 
 
 def test_markdown_mentions_beaten_tour_and_banner():
     md = render_markdown(build_summary(_aligned(), 20.0, now=T0))
     assert STATUS_BANNER in md
-    assert "**itf**: sofa was earliest" in md
+    assert "**itf**: reference was earliest" in md
     assert "market repriced" in md
     assert "| atp | point | lta_poll | 3 | 3.000 | 8.600 | 0 |" in md
 

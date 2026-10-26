@@ -54,8 +54,8 @@ def read_jsonl(path: Path) -> Iterator[Observation]:
 
 
 # --- ScoreEvent persistence (what `report` consumes) ---------------------------------------
-# Sofascore observations are never persisted (private reference clock); only the *events*
-# detected from them (kind + event_id + our timestamps) are, which carries no Sofascore data.
+# Reference clock observations are never persisted; only the *events* detected from them
+# (kind + event_id + our timestamps) are, which carries no reference data.
 
 
 def dump_event(ev: ScoreEvent) -> str:
